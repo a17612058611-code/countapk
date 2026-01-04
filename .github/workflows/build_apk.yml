@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 120
     
     steps:
@@ -32,11 +32,9 @@ jobs:
           openjdk-11-jdk \
           python3-pip python3-venv \
           autoconf libtool pkg-config \
-          zlib1g-dev libncurses5-dev libncursesw5-dev \
+          zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
           cmake libffi-dev libssl-dev \
           build-essential
-        # libtinfo5 is not available in Ubuntu 24.04, use libtinfo6 instead
-        sudo apt-get install -y libtinfo6 || echo "libtinfo6 already installed or not needed"
     
     - name: Install buildozer
       run: |
