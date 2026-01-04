@@ -237,7 +237,7 @@ android.minapi = 21
 android.java_home = /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
 
 # (str) python-for-android branch to use, if not master, useful to try not yet merged features.
-#p4a.branch = master
+p4a.branch = master
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled

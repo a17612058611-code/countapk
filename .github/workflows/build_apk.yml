@@ -56,8 +56,14 @@ jobs:
         export P4A_ALLOW_PREREQUISITES=1
         export ANDROID_ACCEPT_SDK_LICENSE=1
         
+        # 设置环境变量以帮助编译
+        export NDK_DEBUG=1
+        export P4A_DEBUG=1
+        
         echo "Starting buildozer android debug..."
         echo "This may take 30-60 minutes..."
+        echo "Python version: $(python --version)"
+        echo "Cython version: $(cython --version 2>/dev/null || echo 'not found')"
         
         # 运行构建，捕获退出代码
         yes | buildozer android debug 2>&1 | tee build.log
