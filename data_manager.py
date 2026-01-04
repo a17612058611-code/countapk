@@ -76,4 +76,22 @@ class DataManager:
             self.save_data()
             return True
         return False
+    
+    def update_score(self, date, score, desc=''):
+        """
+        更新某一天的分数和描述
+        :param date: 日期字符串，格式：YYYY-MM-DD
+        :param score: 分数（整数）
+        :param desc: 描述（字符串）
+        :return: 如果日期存在返回True，否则返回False
+        """
+        if date in self.data:
+            self.data[date]['score'] = score
+            if desc:
+                self.data[date]['desc'] = desc
+            else:
+                self.data[date]['desc'] = ''
+            self.save_data()
+            return True
+        return False
 
