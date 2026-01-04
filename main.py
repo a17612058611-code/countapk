@@ -18,7 +18,16 @@ from data_manager import DataManager
 def get_chinese_font():
     """获取系统支持中文的字体文件路径"""
     system = platform.system()
-    if system == 'Darwin':  # macOS
+    
+    # 检测是否在Android上运行
+    is_android = os.path.exists('/system/build.prop') or 'ANDROID_ARGUMENT' in os.environ
+    
+    if is_android:
+        # Android系统：使用系统默认中文字体（DroidSansFallback或NotoSansCJK）
+        # Android系统字体通常位于/system/fonts/，但Kivy会自动使用系统字体
+        # 返回None让Kivy使用系统默认字体，它应该支持中文
+        return None
+    elif system == 'Darwin':  # macOS
         # macOS 系统字体文件路径（按优先级排序）
         font_paths = [
             '/System/Library/Fonts/STHeiti Medium.ttc',  # 黑体-简
@@ -39,7 +48,7 @@ def get_chinese_font():
         for font_path in font_paths:
             if os.path.exists(font_path):
                 return font_path
-    # Linux/Android 或其他系统，返回None使用默认字体
+    # Linux 或其他系统
     return None
 
 # 获取中文字体路径
@@ -54,20 +63,64 @@ if CHINESE_FONT:
         print(f"警告: 字体注册失败: {e}")
         CHINESE_FONT = None
 else:
+    # Android或未找到字体：使用Kivy默认字体（Android系统字体应该支持中文）
+    # 在Android上，不设置font_name让系统使用默认字体
     CHINESE_FONT = None
+
+# 配置Kivy默认字体（Android上使用系统字体）
+try:
+    # 尝试设置默认字体，如果失败则使用系统默认
+    if CHINESE_FONT:
+        Config.set('kivy', 'default_font', [CHINESE_FONT])
+except:
+    pass
 
 
 class ScoreApp(App):
     def build(self):
         self.data_manager = DataManager()
         
+        # 检测是否在Android上运行
+        is_android = os.path.exists('/system/build.prop') or 'ANDROID_ARGUMENT' in os.environ
+        
+        # 根据平台调整布局参数
+        if is_android:
+            # Android: 较小的padding和spacing，适合小屏幕
+            padding_val = 10
+            spacing_val = 8
+            title_font_size = 20
+            normal_font_size = 14
+            label_height = 35
+            input_height = 45
+            button_height = 45
+        else:
+            # 桌面: 较大的padding和spacing
+            padding_val = 20
+            spacing_val = 15
+            title_font_size = 24
+            normal_font_size = 18
+            label_height = 40
+            input_height = 50
+            button_height = 50
+        
+        # 主布局容器（使用ScrollView包装以支持滚动）
+        root = BoxLayout(orientation='vertical')
+        
         # 主布局
-        main_layout = BoxLayout(orientation='vertical', padding=20, spacing=15)
+        main_layout = BoxLayout(orientation='vertical', padding=padding_val, spacing=spacing_val, size_hint_y=None)
+        main_layout.bind(minimum_height=main_layout.setter('height'))
+        
+        # 创建ScrollView以支持滚动
+        scroll = ScrollView(size_hint=(1, 1))
+        scroll.add_widget(main_layout)
+        root.add_widget(scroll)
         
         # 辅助函数：创建带中文字体的Label
         def create_label(text, **kwargs):
             label = Label(text=text, **kwargs)
-            if CHINESE_FONT:
+            # 在Android上，不设置font_name让系统使用默认中文字体
+            # 在桌面系统上，如果找到了字体文件则使用
+            if CHINESE_FONT and not is_android:
                 label.font_name = CHINESE_FONT
             return label
         
@@ -75,8 +128,8 @@ class ScoreApp(App):
         title = create_label(
             '每日分数记录',
             size_hint_y=None,
-            height=60,
-            font_size=24,
+            height=label_height * 1.5,
+            font_size=title_font_size,
             bold=True
         )
         main_layout.add_widget(title)
@@ -85,54 +138,56 @@ class ScoreApp(App):
         self.date_label = create_label(
             f'日期: {datetime.now().strftime("%Y-%m-%d")}',
             size_hint_y=None,
-            height=40,
-            font_size=18
+            height=label_height,
+            font_size=normal_font_size
         )
         main_layout.add_widget(self.date_label)
         
         # 当天分数输入区域
-        score_input_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=50, spacing=10)
-        score_label = create_label('今天分数:', size_hint_x=0.3, font_size=16)
+        score_input_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=input_height, spacing=spacing_val)
+        score_label = create_label('今天分数:', size_hint_x=0.25, font_size=normal_font_size - 2)
         score_input_layout.add_widget(score_label)
         self.score_input = TextInput(
             multiline=False,
             input_filter='int',
             hint_text='输入分数(0-100)',
-            size_hint_x=0.4
+            size_hint_x=0.45,
+            font_size=normal_font_size - 2
         )
-        if CHINESE_FONT:
+        if CHINESE_FONT and not is_android:
             self.score_input.font_name = CHINESE_FONT
         score_input_layout.add_widget(self.score_input)
-        self.save_button = Button(text='保存', size_hint_x=0.3, on_press=self.save_score)
-        if CHINESE_FONT:
+        self.save_button = Button(text='保存', size_hint_x=0.3, on_press=self.save_score, font_size=normal_font_size - 2)
+        if CHINESE_FONT and not is_android:
             self.save_button.font_name = CHINESE_FONT
         score_input_layout.add_widget(self.save_button)
         main_layout.add_widget(score_input_layout)
         
         # 分数描述输入
-        desc_input_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=50, spacing=10)
-        desc_label = create_label('分数描述:', size_hint_x=0.3, font_size=16)
+        desc_input_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=input_height, spacing=spacing_val)
+        desc_label = create_label('分数描述:', size_hint_x=0.25, font_size=normal_font_size - 2)
         desc_input_layout.add_widget(desc_label)
         self.desc_input = TextInput(
             multiline=False,
             hint_text='输入描述',
-            size_hint_x=0.7
+            size_hint_x=0.75,
+            font_size=normal_font_size - 2
         )
-        if CHINESE_FONT:
+        if CHINESE_FONT and not is_android:
             self.desc_input.font_name = CHINESE_FONT
         desc_input_layout.add_widget(self.desc_input)
         main_layout.add_widget(desc_input_layout)
         
         # 分隔线
-        separator = create_label('─' * 30, size_hint_y=None, height=20)
+        separator = create_label('─' * 20, size_hint_y=None, height=15)
         main_layout.add_widget(separator)
         
         # 当天分数显示
         self.today_score_label = create_label(
             '今天分数: 未记录',
             size_hint_y=None,
-            height=40,
-            font_size=18
+            height=label_height,
+            font_size=normal_font_size
         )
         main_layout.add_widget(self.today_score_label)
         
@@ -140,8 +195,8 @@ class ScoreApp(App):
         self.today_desc_label = create_label(
             '今天描述: 无',
             size_hint_y=None,
-            height=40,
-            font_size=16
+            height=label_height,
+            font_size=normal_font_size - 2
         )
         main_layout.add_widget(self.today_desc_label)
         
@@ -149,8 +204,8 @@ class ScoreApp(App):
         self.total_score_label = create_label(
             '总分: 0',
             size_hint_y=None,
-            height=40,
-            font_size=18
+            height=label_height,
+            font_size=normal_font_size
         )
         main_layout.add_widget(self.total_score_label)
         
@@ -158,8 +213,8 @@ class ScoreApp(App):
         self.avg_score_label = create_label(
             '平均分: 0.0',
             size_hint_y=None,
-            height=40,
-            font_size=18
+            height=label_height,
+            font_size=normal_font_size
         )
         main_layout.add_widget(self.avg_score_label)
         
@@ -167,10 +222,11 @@ class ScoreApp(App):
         history_button = Button(
             text='查看历史记录',
             size_hint_y=None,
-            height=50,
+            height=button_height,
+            font_size=normal_font_size,
             on_press=self.show_history
         )
-        if CHINESE_FONT:
+        if CHINESE_FONT and not is_android:
             history_button.font_name = CHINESE_FONT
         main_layout.add_widget(history_button)
         
@@ -180,7 +236,7 @@ class ScoreApp(App):
         # 定时更新日期（每天更新）
         Clock.schedule_interval(self.update_date, 60)  # 每分钟检查一次
         
-        return main_layout
+        return root
     
     def update_date(self, dt):
         """更新日期显示"""
@@ -244,17 +300,18 @@ class ScoreApp(App):
     
     def show_popup(self, title, message):
         """显示弹窗"""
+        is_android = os.path.exists('/system/build.prop') or 'ANDROID_ARGUMENT' in os.environ
         content_label = Label(text=message)
-        if CHINESE_FONT:
+        if CHINESE_FONT and not is_android:
             content_label.font_name = CHINESE_FONT
         popup = Popup(
             title=title,
             content=content_label,
-            size_hint=(0.6, 0.3),
-            title_size=18
+            size_hint=(0.8 if is_android else 0.6, 0.3),
+            title_size=16 if is_android else 18
         )
         # Popup的title_font属性在某些版本可能不支持，使用title_font_name
-        if CHINESE_FONT:
+        if CHINESE_FONT and not is_android:
             try:
                 popup.title_font_name = CHINESE_FONT
             except:
@@ -265,6 +322,7 @@ class ScoreApp(App):
     
     def show_history(self, instance):
         """显示历史记录"""
+        is_android = os.path.exists('/system/build.prop') or 'ANDROID_ARGUMENT' in os.environ
         all_scores = self.data_manager.get_all_scores()
         
         if not all_scores:
@@ -272,11 +330,13 @@ class ScoreApp(App):
             return
         
         # 创建历史记录内容
-        history_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        padding_val = 8 if is_android else 10
+        spacing_val = 8 if is_android else 10
+        history_layout = BoxLayout(orientation='vertical', padding=padding_val, spacing=spacing_val)
         
         # 标题
-        title_label = Label(text='历史记录', size_hint_y=None, height=40, font_size=20, bold=True)
-        if CHINESE_FONT:
+        title_label = Label(text='历史记录', size_hint_y=None, height=35 if is_android else 40, font_size=18 if is_android else 20, bold=True)
+        if CHINESE_FONT and not is_android:
             title_label.font_name = CHINESE_FONT
         history_layout.add_widget(title_label)
         
@@ -294,26 +354,28 @@ class ScoreApp(App):
             desc = score_data.get('desc', '无')
             
             # 创建单条记录布局
-            record_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=80, padding=5)
+            record_height = 70 if is_android else 80
+            record_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=record_height, padding=5)
             
-            date_label = Label(text=f'日期: {date}', size_hint_y=None, height=25, font_size=16)
-            if CHINESE_FONT:
+            label_height = 22 if is_android else 25
+            date_label = Label(text=f'日期: {date}', size_hint_y=None, height=label_height, font_size=14 if is_android else 16)
+            if CHINESE_FONT and not is_android:
                 date_label.font_name = CHINESE_FONT
             record_layout.add_widget(date_label)
             
-            score_label = Label(text=f'分数: {score}', size_hint_y=None, height=25, font_size=14)
-            if CHINESE_FONT:
+            score_label = Label(text=f'分数: {score}', size_hint_y=None, height=label_height, font_size=12 if is_android else 14)
+            if CHINESE_FONT and not is_android:
                 score_label.font_name = CHINESE_FONT
             record_layout.add_widget(score_label)
             
-            desc_label = Label(text=f'描述: {desc}', size_hint_y=None, height=25, font_size=14)
-            if CHINESE_FONT:
+            desc_label = Label(text=f'描述: {desc}', size_hint_y=None, height=label_height, font_size=12 if is_android else 14)
+            if CHINESE_FONT and not is_android:
                 desc_label.font_name = CHINESE_FONT
             record_layout.add_widget(desc_label)
             
             # 添加分隔线
-            separator = Label(text='─' * 30, size_hint_y=None, height=5, font_size=10)
-            if CHINESE_FONT:
+            separator = Label(text='─' * 20, size_hint_y=None, height=4, font_size=8)
+            if CHINESE_FONT and not is_android:
                 separator.font_name = CHINESE_FONT
             scroll_content.add_widget(record_layout)
             scroll_content.add_widget(separator)
@@ -322,8 +384,8 @@ class ScoreApp(App):
         history_layout.add_widget(scroll)
         
         # 关闭按钮
-        close_button = Button(text='关闭', size_hint_y=None, height=40)
-        if CHINESE_FONT:
+        close_button = Button(text='关闭', size_hint_y=None, height=40 if is_android else 45, font_size=14 if is_android else 16)
+        if CHINESE_FONT and not is_android:
             close_button.font_name = CHINESE_FONT
         close_button.bind(on_press=lambda x: history_popup.dismiss())
         history_layout.add_widget(close_button)
@@ -332,10 +394,10 @@ class ScoreApp(App):
         history_popup = Popup(
             title='历史记录',
             content=history_layout,
-            size_hint=(0.8, 0.8),
-            title_size=20
+            size_hint=(0.95 if is_android else 0.8, 0.9 if is_android else 0.8),
+            title_size=18 if is_android else 20
         )
-        if CHINESE_FONT:
+        if CHINESE_FONT and not is_android:
             try:
                 history_popup.title_font_name = CHINESE_FONT
             except:
