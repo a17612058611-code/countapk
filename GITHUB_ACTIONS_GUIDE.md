@@ -17,7 +17,7 @@ git add .
 git commit -m "Initial commit: 每日分数记录应用"
 
 # 在GitHub上创建新仓库，然后：
-git remote add origin https://github.com/你的用户名/countapk.git
+git remote add origin https://github.com/a17612058611-code/countapk.git
 git branch -M main
 git push -u origin main
 ```
@@ -28,7 +28,7 @@ git push -u origin main
 
 #### 方式1：手动触发（推荐首次使用）
 
-1. 打开GitHub仓库页面
+1. 打开GitHub仓库页面：https://github.com/a17612058611-code/countapk
 2. 点击 **Actions** 标签页
 3. 在左侧选择 **Build Android APK**
 4. 点击 **Run workflow** 按钮

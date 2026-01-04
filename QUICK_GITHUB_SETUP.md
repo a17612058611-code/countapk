@@ -19,14 +19,14 @@ git commit -m "Initial commit: 每日分数记录Android应用"
 ### 3. 推送代码
 
 ```bash
-git remote add origin https://github.com/你的用户名/countapk.git
+git remote add origin https://github.com/a17612058611-code/countapk.git
 git branch -M main
 git push -u origin main
 ```
 
 ### 4. 触发构建
 
-1. 打开 https://github.com/你的用户名/countapk/actions
+1. 打开 https://github.com/a17612058611-code/countapk/actions
 2. 点击 "Build Android APK"
 3. 点击 "Run workflow" → "Run workflow"
 
