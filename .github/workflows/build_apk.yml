@@ -48,21 +48,44 @@ jobs:
         java -version
     
     - name: Build APK
+      continue-on-error: false
       run: |
         export P4A_ALLOW_PREREQUISITES=1
         export ANDROID_ACCEPT_SDK_LICENSE=1
-        yes | buildozer android debug
+        export BUILD_FAILURE=0
+        yes | buildozer android debug || BUILD_FAILURE=$?
+        if [ $BUILD_FAILURE -ne 0 ]; then
+          echo "Build failed with exit code $BUILD_FAILURE"
+          echo "Checking for partial build artifacts..."
+          ls -la bin/ 2>/dev/null || echo "No bin directory found"
+          exit $BUILD_FAILURE
+        fi
       env:
         P4A_ALLOW_PREREQUISITES: 1
         ANDROID_ACCEPT_SDK_LICENSE: 1
     
+    - name: Check for APK files
+      if: always()
+      run: |
+        echo "Checking for APK files..."
+        if ls bin/*.apk 2>/dev/null; then
+          echo "APK files found:"
+          ls -lh bin/*.apk
+          echo "APK_EXISTS=true" >> $GITHUB_ENV
+        else
+          echo "No APK files found in bin/"
+          ls -la bin/ 2>/dev/null || echo "bin/ directory does not exist"
+          echo "APK_EXISTS=false" >> $GITHUB_ENV
+        fi
+    
     - name: Upload APK
       uses: actions/upload-artifact@v4
-      if: success()
+      if: env.APK_EXISTS == 'true'
       with:
         name: scoreapp-apk
         path: bin/*.apk
         retention-days: 30
+        if-no-files-found: warn
     
     - name: Build summary
       if: always()
@@ -70,14 +93,14 @@ jobs:
         echo "## 📱 构建结果" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
-        if ls bin/*.apk 2>/dev/null; then
+        if [ "${{ env.APK_EXISTS }}" == "true" ] || ls bin/*.apk 2>/dev/null; then
           echo "### ✅ APK构建成功！" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "APK文件已上传到Artifacts，可以在页面底部下载。" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**APK文件信息：**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          ls -lh bin/*.apk >> $GITHUB_STEP_SUMMARY
+          ls -lh bin/*.apk >> $GITHUB_STEP_SUMMARY 2>&1 || echo "无法列出APK文件" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📥 下载方式" >> $GITHUB_STEP_SUMMARY
@@ -87,11 +110,20 @@ jobs:
         else
           echo "### ❌ APK构建失败" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**退出代码**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "请查看上方的构建日志获取详细错误信息。" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**常见问题：**" >> $GITHUB_STEP_SUMMARY
-          echo "- 检查代码是否有语法错误" >> $GITHUB_STEP_SUMMARY
-          echo "- 检查依赖是否正确安装" >> $GITHUB_STEP_SUMMARY
-          echo "- 查看完整的构建日志" >> $GITHUB_STEP_SUMMARY
+          echo "**常见问题排查：**" >> $GITHUB_STEP_SUMMARY
+          echo "1. 检查代码是否有语法错误" >> $GITHUB_STEP_SUMMARY
+          echo "2. 检查依赖是否正确安装（查看Install buildozer步骤）" >> $GITHUB_STEP_SUMMARY
+          echo "3. 检查Android SDK/NDK下载是否成功" >> $GITHUB_STEP_SUMMARY
+          echo "4. 查看Build APK步骤的完整日志" >> $GITHUB_STEP_SUMMARY
+          echo "5. 检查buildozer.spec配置是否正确" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**调试建议：**" >> $GITHUB_STEP_SUMMARY
+          echo "- 查看构建日志中的ERROR或WARNING信息" >> $GITHUB_STEP_SUMMARY
+          echo "- 检查是否有网络连接问题导致下载失败" >> $GITHUB_STEP_SUMMARY
+          echo "- 尝试在本地运行 \`buildozer android debug\` 测试" >> $GITHUB_STEP_SUMMARY
         fi
 
