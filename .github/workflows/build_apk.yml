@@ -48,18 +48,55 @@ jobs:
         java -version
     
     - name: Build APK
-      continue-on-error: false
+      continue-on-error: true
+      id: build_apk
       run: |
+        set +e  # 允许错误，不立即退出
         export P4A_ALLOW_PREREQUISITES=1
         export ANDROID_ACCEPT_SDK_LICENSE=1
-        export BUILD_FAILURE=0
-        yes | buildozer android debug || BUILD_FAILURE=$?
-        if [ $BUILD_FAILURE -ne 0 ]; then
-          echo "Build failed with exit code $BUILD_FAILURE"
-          echo "Checking for partial build artifacts..."
-          ls -la bin/ 2>/dev/null || echo "No bin directory found"
-          exit $BUILD_FAILURE
+        
+        echo "Starting buildozer android debug..."
+        echo "This may take 30-60 minutes..."
+        
+        # 运行构建，捕获退出代码
+        yes | buildozer android debug 2>&1 | tee build.log
+        BUILD_EXIT_CODE=${PIPESTATUS[0]}
+        
+        echo "Buildozer exited with code: $BUILD_EXIT_CODE"
+        
+        # 检查构建结果
+        if [ $BUILD_EXIT_CODE -eq 0 ]; then
+          echo "✅ Build completed successfully"
+          echo "build_status=success" >> $GITHUB_OUTPUT
+        else
+          echo "❌ Build failed with exit code $BUILD_EXIT_CODE"
+          echo "build_status=failed" >> $GITHUB_OUTPUT
+          echo "build_exit_code=$BUILD_EXIT_CODE" >> $GITHUB_OUTPUT
+          
+          # 显示最后50行日志以帮助调试
+          echo ""
+          echo "=== Last 50 lines of build log ==="
+          tail -50 build.log || echo "Could not read build.log"
+          echo "=== End of build log ==="
         fi
+        
+        # 检查是否有部分构建产物
+        echo ""
+        echo "Checking build artifacts..."
+        if [ -d "bin" ]; then
+          echo "bin/ directory exists"
+          ls -la bin/ || echo "Could not list bin/ contents"
+        else
+          echo "bin/ directory does not exist"
+        fi
+        
+        if [ -d ".buildozer" ]; then
+          echo ".buildozer/ directory exists"
+          du -sh .buildozer 2>/dev/null || echo "Could not check .buildozer size"
+        fi
+        
+        # 即使失败也继续，让后续步骤处理
+        exit $BUILD_EXIT_CODE
       env:
         P4A_ALLOW_PREREQUISITES: 1
         ANDROID_ACCEPT_SDK_LICENSE: 1
@@ -67,15 +104,41 @@ jobs:
     - name: Check for APK files
       if: always()
       run: |
-        echo "Checking for APK files..."
-        if ls bin/*.apk 2>/dev/null; then
-          echo "APK files found:"
-          ls -lh bin/*.apk
-          echo "APK_EXISTS=true" >> $GITHUB_ENV
+        echo "=== Checking for APK files ==="
+        
+        if [ -d "bin" ]; then
+          echo "bin/ directory exists"
+          echo "Contents of bin/:"
+          ls -la bin/ || echo "Could not list bin/ contents"
+          
+          if ls bin/*.apk 2>/dev/null; then
+            echo ""
+            echo "✅ APK files found:"
+            ls -lh bin/*.apk
+            echo "APK_EXISTS=true" >> $GITHUB_ENV
+            echo "APK_COUNT=$(ls -1 bin/*.apk 2>/dev/null | wc -l)" >> $GITHUB_ENV
+          else
+            echo ""
+            echo "❌ No APK files found in bin/"
+            echo "APK_EXISTS=false" >> $GITHUB_ENV
+            echo "APK_COUNT=0" >> $GITHUB_ENV
+          fi
         else
-          echo "No APK files found in bin/"
-          ls -la bin/ 2>/dev/null || echo "bin/ directory does not exist"
+          echo "❌ bin/ directory does not exist"
+          echo "This indicates the build did not complete successfully"
           echo "APK_EXISTS=false" >> $GITHUB_ENV
+          echo "APK_COUNT=0" >> $GITHUB_ENV
+        fi
+        
+        # 检查buildozer日志
+        echo ""
+        echo "=== Checking buildozer logs ==="
+        if [ -f "build.log" ]; then
+          echo "build.log exists ($(wc -l < build.log) lines)"
+          echo "Last 20 lines with errors:"
+          grep -i "error\|failed\|exception" build.log | tail -20 || echo "No errors found in last check"
+        else
+          echo "build.log does not exist"
         fi
     
     - name: Upload APK
