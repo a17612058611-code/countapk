@@ -67,13 +67,31 @@ jobs:
     - name: Build summary
       if: always()
       run: |
-        echo "## 构建结果" >> $GITHUB_STEP_SUMMARY
+        echo "## 📱 构建结果" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
         if ls bin/*.apk 2>/dev/null; then
-          echo "✅ APK构建成功！" >> $GITHUB_STEP_SUMMARY
-          echo "APK文件已上传到Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ APK构建成功！" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "APK文件已上传到Artifacts，可以在页面底部下载。" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**APK文件信息：**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           ls -lh bin/*.apk >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📥 下载方式" >> $GITHUB_STEP_SUMMARY
+          echo "1. 在Actions页面底部找到 **Artifacts** 部分" >> $GITHUB_STEP_SUMMARY
+          echo "2. 点击 **scoreapp-apk** 下载ZIP文件" >> $GITHUB_STEP_SUMMARY
+          echo "3. 解压ZIP文件即可获得APK" >> $GITHUB_STEP_SUMMARY
         else
-          echo "❌ APK构建失败" >> $GITHUB_STEP_SUMMARY
-          echo "请查看构建日志获取详细信息" >> $GITHUB_STEP_SUMMARY
+          echo "### ❌ APK构建失败" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "请查看上方的构建日志获取详细错误信息。" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**常见问题：**" >> $GITHUB_STEP_SUMMARY
+          echo "- 检查代码是否有语法错误" >> $GITHUB_STEP_SUMMARY
+          echo "- 检查依赖是否正确安装" >> $GITHUB_STEP_SUMMARY
+          echo "- 查看完整的构建日志" >> $GITHUB_STEP_SUMMARY
         fi
 
