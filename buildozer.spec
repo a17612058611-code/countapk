@@ -234,7 +234,7 @@ android.minapi = 21
 #android.ant_path =
 
 # (str) JAVA_HOME environment variable
-android.java_home = /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+# android.java_home =
 
 # (str) python-for-android branch to use, if not master, useful to try not yet merged features.
 p4a.branch = master
