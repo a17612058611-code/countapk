@@ -36,9 +36,10 @@ jobs:
           cmake libffi-dev libssl-dev \
           build-essential
     
-    - name: Install buildozer
+    - name: Install buildozer and dependencies
       run: |
         pip install --upgrade pip
+        pip install Cython
         pip install buildozer
     
     - name: Set up environment
