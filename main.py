@@ -209,13 +209,13 @@ class ScoreApp(App):
         # 根据平台调整布局参数（增大字体和按钮尺寸，参考Widgetable应用）
         if is_android:
             # Android: 增大字体和按钮，参考Widgetable应用
-            padding_val = 20
-            spacing_val = 15
-            title_font_size = 32  # 增大标题字体
-            normal_font_size = 22  # 增大普通字体
-            label_height = 50
-            input_height = 70  # 增大输入框高度
-            button_height = 70  # 增大按钮高度
+            padding_val = 25
+            spacing_val = 20
+            title_font_size = 42  # 增大标题字体
+            normal_font_size = 30  # 增大普通字体
+            label_height = 65
+            input_height = 95  # 增大输入框高度
+            button_height = 95  # 增大按钮高度
         else:
             # 桌面: 更大的字体和间距
             padding_val = 30
@@ -483,7 +483,7 @@ class ScoreApp(App):
         content_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         
         # 消息标签
-        content_label = Label(text=message, size_hint_y=1)
+        content_label = Label(text=message, size_hint_y=1, font_size=20 if is_android else 16)
         if CHINESE_FONT:
             content_label.font_name = CHINESE_FONT
         content_layout.add_widget(content_label)
@@ -503,7 +503,7 @@ class ScoreApp(App):
                 pass
         
         # 关闭按钮
-        close_button = Button(text=get_text('close'), size_hint_y=None, height=40 if is_android else 45, font_size=14 if is_android else 16)
+        close_button = Button(text=get_text('close'), size_hint_y=None, height=55 if is_android else 45, font_size=20 if is_android else 16)
         if CHINESE_FONT:
             close_button.font_name = CHINESE_FONT
         close_button.bind(on_press=lambda x: popup.dismiss())
@@ -538,15 +538,15 @@ class ScoreApp(App):
         
         history_layout.bind(pos=update_history_rect, size=update_history_rect)
         
-        # 标题
-        title_label = Label(text=get_text('history_title'), size_hint_y=None, height=35 if is_android else 40, font_size=18 if is_android else 20, bold=True, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
+        # 标题（增大字体）
+        title_label = Label(text=get_text('history_title'), size_hint_y=None, height=55 if is_android else 45, font_size=32 if is_android else 24, bold=True, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
         if CHINESE_FONT:
             title_label.font_name = CHINESE_FONT
         history_layout.add_widget(title_label)
         
         # 创建滚动视图
         scroll = ScrollView(size_hint=(1, 1))
-        scroll_content = BoxLayout(orientation='vertical', spacing=5, size_hint_y=None)
+        scroll_content = BoxLayout(orientation='vertical', spacing=8, size_hint_y=None, padding=[0, 10, 0, 0])  # 增大间距，添加顶部padding让第一条记录下移
         scroll_content.bind(minimum_height=scroll_content.setter('height'))
         
         # 按日期排序（最新的在前）
@@ -557,53 +557,55 @@ class ScoreApp(App):
             score = score_data.get('score', 0)
             desc = score_data.get('desc', get_text('none'))
             
-            # 创建单条记录布局
-            record_height = 100 if is_android else 110  # 增加高度以容纳按钮
-            record_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=record_height, padding=5)
+            # 创建单条记录布局（增大高度以容纳更大的字体和按钮）
+            record_height = 165 if is_android else 150  # 进一步增加高度以容纳更大的按钮和字体，确保日期显示
+            record_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=record_height, padding=8)  # 增大内边距
             
-            # 信息区域
-            info_layout = BoxLayout(orientation='vertical', size_hint_y=1)
-            label_height = 22 if is_android else 25
-            date_label = Label(text=f'{get_text("date")}: {date}', size_hint_y=None, height=label_height, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
+            # 信息区域（移除size_hint_y=1，让布局根据子元素自动调整）
+            info_layout = BoxLayout(orientation='vertical', size_hint_y=None)
+            label_height = 38 if is_android else 30  # 增大标签高度以适应更大字体
+            date_label = Label(text=f'{get_text("date")}: {date}', size_hint_y=None, height=label_height, font_size=24 if is_android else 18, color=(0.2, 0.2, 0.2, 1))  # 黑色文字，增大字体
             if CHINESE_FONT:
                 date_label.font_name = CHINESE_FONT
             info_layout.add_widget(date_label)
             
-            score_label = Label(text=f'{get_text("score")}: {score}', size_hint_y=None, height=label_height, font_size=12 if is_android else 14, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
+            score_label = Label(text=f'{get_text("score")}: {score}', size_hint_y=None, height=label_height, font_size=22 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字，增大字体
             if CHINESE_FONT:
                 score_label.font_name = CHINESE_FONT
             info_layout.add_widget(score_label)
             
-            desc_label = Label(text=f'{get_text("desc")}: {desc}', size_hint_y=None, height=label_height, font_size=12 if is_android else 14, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
+            desc_label = Label(text=f'{get_text("desc")}: {desc}', size_hint_y=None, height=label_height, font_size=22 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字，增大字体
             if CHINESE_FONT:
                 desc_label.font_name = CHINESE_FONT
             info_layout.add_widget(desc_label)
             record_layout.add_widget(info_layout)
             
-            # 按钮区域
-            button_height = 35 if is_android else 40
-            button_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=button_height, spacing=5)
+            # 按钮区域（增大按钮高度和字体）
+            button_height = 70 if is_android else 55  # 增大按钮高度，便于手机点击
+            button_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=button_height, spacing=8)  # 增大间距
             
-            # 编辑按钮
+            # 编辑按钮（增大字体）
             edit_btn = Button(
                 text=get_text('edit'),
                 size_hint_x=0.5,
-                font_size=12 if is_android else 14,
+                font_size=22 if is_android else 18,  # 增大字体
                 background_color=(0.4, 0.7, 1.0, 1),  # 浅蓝色
-                color=(1, 1, 1, 1)  # 白色文字
+                color=(1, 1, 1, 1),  # 白色文字
+                bold=True  # 加粗
             )
             if CHINESE_FONT:
                 edit_btn.font_name = CHINESE_FONT
             edit_btn.bind(on_press=lambda x, d=date: self.edit_record_from_history(d, history_popup))
             button_layout.add_widget(edit_btn)
             
-            # 删除按钮
+            # 删除按钮（增大字体）
             delete_btn = Button(
                 text=get_text('delete'),
                 size_hint_x=0.5,
-                font_size=12 if is_android else 14,
+                font_size=22 if is_android else 18,  # 增大字体
                 background_color=(1.0, 0.5, 0.5, 1),  # 浅红色
-                color=(1, 1, 1, 1)  # 白色文字
+                color=(1, 1, 1, 1),  # 白色文字
+                bold=True  # 加粗
             )
             if CHINESE_FONT:
                 delete_btn.font_name = CHINESE_FONT
@@ -622,8 +624,8 @@ class ScoreApp(App):
         scroll.add_widget(scroll_content)
         history_layout.add_widget(scroll)
         
-        # 关闭按钮
-        close_button = Button(text=get_text('close'), size_hint_y=None, height=40 if is_android else 45, font_size=14 if is_android else 16)
+        # 关闭按钮（增大高度和字体）
+        close_button = Button(text=get_text('close'), size_hint_y=None, height=70 if is_android else 55, font_size=24 if is_android else 18, bold=True)  # 增大字体和高度，加粗
         if CHINESE_FONT:
             close_button.font_name = CHINESE_FONT
         close_button.bind(on_press=lambda x: history_popup.dismiss())
@@ -634,13 +636,15 @@ class ScoreApp(App):
             title=get_text('history_title'),
             content=history_layout,
             size_hint=(0.95 if is_android else 0.8, 0.9 if is_android else 0.8),
-            title_size=18 if is_android else 20
+            title_size=22 if is_android else 20  # 增大标题字体
         )
         if CHINESE_FONT:
             try:
                 history_popup.title_font_name = CHINESE_FONT
             except:
                 pass
+        # 保存历史记录弹窗引用
+        self.history_popup = history_popup
         history_popup.open()
     
     def delete_record_from_history(self, date, history_popup):
@@ -649,21 +653,21 @@ class ScoreApp(App):
         is_android = os.path.exists('/system/build.prop') or 'ANDROID_ARGUMENT' in os.environ
         confirm_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         
-        confirm_label = Label(text=get_text('delete_confirm'), size_hint_y=1)
+        confirm_label = Label(text=get_text('delete_confirm'), size_hint_y=1, font_size=20 if is_android else 16)
         if CHINESE_FONT:
             confirm_label.font_name = CHINESE_FONT
         confirm_layout.add_widget(confirm_label)
         
-        button_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=10)
+        button_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=55 if is_android else 40, spacing=10)
         
         # 确认按钮
-        yes_button = Button(text=get_text('confirm'), size_hint_x=0.5)
+        yes_button = Button(text=get_text('confirm'), size_hint_x=0.5, font_size=20 if is_android else 16)
         if CHINESE_FONT:
             yes_button.font_name = CHINESE_FONT
         button_layout.add_widget(yes_button)
         
         # 取消按钮
-        no_button = Button(text=get_text('close'), size_hint_x=0.5)
+        no_button = Button(text=get_text('close'), size_hint_x=0.5, font_size=20 if is_android else 16)
         if CHINESE_FONT:
             no_button.font_name = CHINESE_FONT
         button_layout.add_widget(no_button)
@@ -708,8 +712,8 @@ class ScoreApp(App):
     
     def edit_record_from_history(self, date, history_popup):
         """从历史记录中编辑一条记录"""
-        # 关闭历史记录弹窗
-        history_popup.dismiss()
+        # 保存历史记录弹窗引用，不关闭历史记录弹窗
+        self.history_popup = history_popup
         # 打开编辑界面，并设置日期
         self.show_edit_record(date)
     
@@ -732,8 +736,9 @@ class ScoreApp(App):
         
         # 创建修改历史记录界面
         padding_val = 8 if is_android else 10
-        spacing_val = 8 if is_android else 10
-        edit_layout = BoxLayout(orientation='vertical', padding=[padding_val, padding_val - 3, padding_val, padding_val], spacing=spacing_val)  # 顶部padding减少3像素，让标题上移
+        spacing_val = 5 if is_android else 10  # 减小间距，让内容更紧凑
+        top_padding = 0 if is_android else padding_val  # Android上移除上边距，让内容紧贴顶部
+        edit_layout = BoxLayout(orientation='vertical', padding=[padding_val, top_padding, padding_val, padding_val], spacing=spacing_val)  # 顶部padding为0，消除空白
         
         # 标题
         
@@ -748,7 +753,7 @@ class ScoreApp(App):
         
         edit_layout.bind(pos=update_edit_rect, size=update_edit_rect)
         
-        title_label = Label(text=get_text('edit_title'), size_hint_y=None, height=40 if is_android else 45, font_size=22 if is_android else 24, bold=True, color=(0.2, 0.2, 0.2, 1))  # 黑色文字，字号更大
+        title_label = Label(text=get_text('edit_title'), size_hint_y=None, height=48 if is_android else 45, font_size=30 if is_android else 24, bold=True, color=(0.2, 0.2, 0.2, 1))  # 黑色文字，字号更大
         if CHINESE_FONT:
             title_label.font_name = CHINESE_FONT
         edit_layout.add_widget(title_label)
@@ -757,17 +762,17 @@ class ScoreApp(App):
         date_select_layout = BoxLayout(orientation='vertical', size_hint_y=None, spacing=spacing_val)
         
         # 日期标签
-        date_label = Label(text=f'{get_text("select_date")}:', size_hint_y=None, height=30 if is_android else 35, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
+        date_label = Label(text=f'{get_text("select_date")}:', size_hint_y=None, height=38 if is_android else 35, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
         if CHINESE_FONT:
             date_label.font_name = CHINESE_FONT
         date_select_layout.add_widget(date_label)
         
         # 年、月、日选择器布局
-        date_picker_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=45 if is_android else 50, spacing=spacing_val)
+        date_picker_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=55 if is_android else 50, spacing=spacing_val)  # 减小高度，让内容更紧凑
         
         # 年份选择器
         year_values = [str(i) for i in range(year - 10, year + 11)]
-        year_label = Label(text=f'{get_text("year")}:', size_hint_x=0.15, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
+        year_label = Label(text=f'{get_text("year")}:', size_hint_x=0.15, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
         if CHINESE_FONT:
             year_label.font_name = CHINESE_FONT
         date_picker_layout.add_widget(year_label)
@@ -776,7 +781,7 @@ class ScoreApp(App):
             text=str(year),
             values=year_values,
             size_hint_x=0.28,
-            font_size=14 if is_android else 16
+            font_size=20 if is_android else 16
         )
         if CHINESE_FONT:
             self.year_spinner.font_name = CHINESE_FONT
@@ -785,7 +790,7 @@ class ScoreApp(App):
         
         # 月份选择器
         month_values = [str(i) for i in range(1, 13)]
-        month_label = Label(text=f'{get_text("month")}:', size_hint_x=0.15, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
+        month_label = Label(text=f'{get_text("month")}:', size_hint_x=0.15, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
         if CHINESE_FONT:
             month_label.font_name = CHINESE_FONT
         date_picker_layout.add_widget(month_label)
@@ -794,7 +799,7 @@ class ScoreApp(App):
             text=str(month),
             values=month_values,
             size_hint_x=0.28,
-            font_size=14 if is_android else 16
+            font_size=20 if is_android else 16
         )
         if CHINESE_FONT:
             self.month_spinner.font_name = CHINESE_FONT
@@ -802,7 +807,7 @@ class ScoreApp(App):
         date_picker_layout.add_widget(self.month_spinner)
         
         # 日期选择器
-        day_label = Label(text=f'{get_text("day")}:', size_hint_x=0.15, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
+        day_label = Label(text=f'{get_text("day")}:', size_hint_x=0.15, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
         if CHINESE_FONT:
             day_label.font_name = CHINESE_FONT
         date_picker_layout.add_widget(day_label)
@@ -813,7 +818,7 @@ class ScoreApp(App):
             text=str(min(day, days)),
             values=day_values,
             size_hint_x=0.28,
-            font_size=14 if is_android else 16
+            font_size=20 if is_android else 16
         )
         if CHINESE_FONT:
             self.day_spinner.font_name = CHINESE_FONT
@@ -824,8 +829,8 @@ class ScoreApp(App):
         edit_layout.add_widget(date_select_layout)
         
         # 分数输入区域
-        score_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=45 if is_android else 50, spacing=spacing_val)
-        score_edit_label = Label(text=f'{get_text("score")}:', size_hint_x=0.3, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
+        score_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=55 if is_android else 50, spacing=spacing_val)  # 减小高度，让内容更紧凑
+        score_edit_label = Label(text=f'{get_text("score")}:', size_hint_x=0.3, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
         if CHINESE_FONT:
             score_edit_label.font_name = CHINESE_FONT
         score_edit_layout.add_widget(score_edit_label)
@@ -835,39 +840,40 @@ class ScoreApp(App):
             input_filter='int',
             hint_text=get_text('input_score'),
             size_hint_x=0.7,
-            font_size=14 if is_android else 16
+            font_size=20 if is_android else 16
         )
         if CHINESE_FONT:
             self.edit_score_input.font_name = CHINESE_FONT
         score_edit_layout.add_widget(self.edit_score_input)
         edit_layout.add_widget(score_edit_layout)
         
-        # 描述输入区域
-        desc_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=45 if is_android else 50, spacing=spacing_val)
-        desc_edit_label = Label(text=f'{get_text("desc")}:', size_hint_x=0.3, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
+        # 描述输入区域（2行高度）
+        desc_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=70 if is_android else 60, spacing=spacing_val)  # 2行文字高度
+        desc_edit_label = Label(text=f'{get_text("desc")}:', size_hint_x=0.3, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
         if CHINESE_FONT:
             desc_edit_label.font_name = CHINESE_FONT
         desc_edit_layout.add_widget(desc_edit_label)
         
         self.edit_desc_input = TextInput(
-            multiline=False,
+            multiline=True,  # 允许多行输入
             hint_text=get_text('input_desc'),
             size_hint_x=0.7,
-            font_size=14 if is_android else 16
+            font_size=20 if is_android else 16,
+            padding_y=[8, 8]  # 增加上下内边距
         )
         if CHINESE_FONT:
             self.edit_desc_input.font_name = CHINESE_FONT
         desc_edit_layout.add_widget(self.edit_desc_input)
         edit_layout.add_widget(desc_edit_layout)
         
-        # 按钮区域
-        button_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=45 if is_android else 50, spacing=spacing_val)
+        # 按钮区域（增大高度，便于点击）
+        button_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=75 if is_android else 60, spacing=spacing_val)  # 增大高度，便于手机点击
         
         # 保存修改按钮
         save_edit_button = Button(
             text=get_text('save_edit'),
             size_hint_x=0.5,
-            font_size=14 if is_android else 16,
+            font_size=20 if is_android else 16,
             on_press=self.save_edit
         )
         if CHINESE_FONT:
@@ -878,7 +884,7 @@ class ScoreApp(App):
         close_edit_button = Button(
             text=get_text('close'),
             size_hint_x=0.5,
-            font_size=14 if is_android else 16,
+            font_size=20 if is_android else 16,
             on_press=lambda x: self.edit_popup.dismiss()
         )
         if CHINESE_FONT:
@@ -891,7 +897,7 @@ class ScoreApp(App):
         self.edit_popup = Popup(
             title=get_text('edit_title'),
             content=edit_layout,
-            size_hint=(0.95 if is_android else 0.7, 0.65 if is_android else 0.55),
+            size_hint=(0.95 if is_android else 0.7, 0.1 if is_android else 0.45),  # 进一步减小高度，让弹窗更紧凑
             title_size=18 if is_android else 20
         )
         if CHINESE_FONT:
@@ -955,8 +961,9 @@ class ScoreApp(App):
         
         # 创建修改历史记录界面
         padding_val = 8 if is_android else 10
-        spacing_val = 8 if is_android else 10
-        edit_layout = BoxLayout(orientation='vertical', padding=[padding_val, padding_val - 3, padding_val, padding_val], spacing=spacing_val)  # 顶部padding减少3像素，让标题上移
+        spacing_val = 5 if is_android else 10  # 减小间距，让内容更紧凑
+        top_padding = 0 if is_android else padding_val  # Android上移除上边距，让内容紧贴顶部
+        edit_layout = BoxLayout(orientation='vertical', padding=[padding_val, top_padding, padding_val, padding_val], spacing=spacing_val)  # 顶部padding为0，消除空白
         
         # 设置浅黄色背景
         with edit_layout.canvas.before:
@@ -970,7 +977,7 @@ class ScoreApp(App):
         edit_layout.bind(pos=update_edit_rect, size=update_edit_rect)
         
         # 标题
-        title_label = Label(text=get_text('edit_title'), size_hint_y=None, height=40 if is_android else 45, font_size=22 if is_android else 24, bold=True, color=(0.2, 0.2, 0.2, 1))  # 黑色文字，字号更大
+        title_label = Label(text=get_text('edit_title'), size_hint_y=None, height=48 if is_android else 45, font_size=30 if is_android else 24, bold=True, color=(0.2, 0.2, 0.2, 1))  # 黑色文字，字号更大
         if CHINESE_FONT:
             title_label.font_name = CHINESE_FONT
         edit_layout.add_widget(title_label)
@@ -979,18 +986,18 @@ class ScoreApp(App):
         date_select_layout = BoxLayout(orientation='vertical', size_hint_y=None, spacing=spacing_val)
         
         # 日期标签
-        date_label = Label(text=f'{get_text("select_date")}:', size_hint_y=None, height=30 if is_android else 35, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
+        date_label = Label(text=f'{get_text("select_date")}:', size_hint_y=None, height=38 if is_android else 35, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
         if CHINESE_FONT:
             date_label.font_name = CHINESE_FONT
         date_select_layout.add_widget(date_label)
         
         # 年、月、日选择器布局
-        date_picker_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=45 if is_android else 50, spacing=spacing_val)
+        date_picker_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=55 if is_android else 50, spacing=spacing_val)  # 减小高度，让内容更紧凑
         
         # 年份选择器（当前年份前后各10年）
         current_year = datetime.now().year
         year_values = [str(i) for i in range(current_year - 10, current_year + 11)]
-        year_label = Label(text=f'{get_text("year")}:', size_hint_x=0.15, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
+        year_label = Label(text=f'{get_text("year")}:', size_hint_x=0.15, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
         if CHINESE_FONT:
             year_label.font_name = CHINESE_FONT
         date_picker_layout.add_widget(year_label)
@@ -999,7 +1006,7 @@ class ScoreApp(App):
             text=str(current_year),
             values=year_values,
             size_hint_x=0.28,
-            font_size=14 if is_android else 16
+            font_size=20 if is_android else 16
         )
         if CHINESE_FONT:
             self.year_spinner.font_name = CHINESE_FONT
@@ -1008,7 +1015,7 @@ class ScoreApp(App):
         
         # 月份选择器
         month_values = [str(i) for i in range(1, 13)]
-        month_label = Label(text=f'{get_text("month")}:', size_hint_x=0.15, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
+        month_label = Label(text=f'{get_text("month")}:', size_hint_x=0.15, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
         if CHINESE_FONT:
             month_label.font_name = CHINESE_FONT
         date_picker_layout.add_widget(month_label)
@@ -1018,7 +1025,7 @@ class ScoreApp(App):
             text=str(current_month),
             values=month_values,
             size_hint_x=0.28,
-            font_size=14 if is_android else 16
+            font_size=20 if is_android else 16
         )
         if CHINESE_FONT:
             self.month_spinner.font_name = CHINESE_FONT
@@ -1026,7 +1033,7 @@ class ScoreApp(App):
         date_picker_layout.add_widget(self.month_spinner)
         
         # 日期选择器
-        day_label = Label(text=f'{get_text("day")}:', size_hint_x=0.15, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
+        day_label = Label(text=f'{get_text("day")}:', size_hint_x=0.15, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
         if CHINESE_FONT:
             day_label.font_name = CHINESE_FONT
         date_picker_layout.add_widget(day_label)
@@ -1038,7 +1045,7 @@ class ScoreApp(App):
             text=str(min(current_day, days)),
             values=day_values,
             size_hint_x=0.28,
-            font_size=14 if is_android else 16
+            font_size=20 if is_android else 16
         )
         if CHINESE_FONT:
             self.day_spinner.font_name = CHINESE_FONT
@@ -1049,8 +1056,8 @@ class ScoreApp(App):
         edit_layout.add_widget(date_select_layout)
         
         # 分数输入区域
-        score_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=45 if is_android else 50, spacing=spacing_val)
-        score_edit_label = Label(text=f'{get_text("score")}:', size_hint_x=0.3, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
+        score_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=55 if is_android else 50, spacing=spacing_val)  # 减小高度，让内容更紧凑
+        score_edit_label = Label(text=f'{get_text("score")}:', size_hint_x=0.3, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字
         if CHINESE_FONT:
             score_edit_label.font_name = CHINESE_FONT
         score_edit_layout.add_widget(score_edit_label)
@@ -1060,50 +1067,51 @@ class ScoreApp(App):
             input_filter='int',
             hint_text=get_text('input_score'),
             size_hint_x=0.7,
-            font_size=14 if is_android else 16
+            font_size=20 if is_android else 16
         )
         if CHINESE_FONT:
             self.edit_score_input.font_name = CHINESE_FONT
         score_edit_layout.add_widget(self.edit_score_input)
         edit_layout.add_widget(score_edit_layout)
         
-        # 描述输入区域
-        desc_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=45 if is_android else 50, spacing=spacing_val)
-        desc_edit_label = Label(text=f'{get_text("desc")}:', size_hint_x=0.3, font_size=14 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
+        # 描述输入区域（2行高度）
+        desc_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=70 if is_android else 60, spacing=spacing_val)  # 2行文字高度
+        desc_edit_label = Label(text=f'{get_text("desc")}:', size_hint_x=0.3, font_size=20 if is_android else 16, color=(0.2, 0.2, 0.2, 1))  # 黑色文字)
         if CHINESE_FONT:
             desc_edit_label.font_name = CHINESE_FONT
         desc_edit_layout.add_widget(desc_edit_label)
         
         self.edit_desc_input = TextInput(
-            multiline=False,
+            multiline=True,  # 允许多行输入
             hint_text=get_text('input_desc'),
             size_hint_x=0.7,
-            font_size=14 if is_android else 16
+            font_size=20 if is_android else 16,
+            padding_y=[8, 8]  # 增加上下内边距
         )
         if CHINESE_FONT:
             self.edit_desc_input.font_name = CHINESE_FONT
         desc_edit_layout.add_widget(self.edit_desc_input)
         edit_layout.add_widget(desc_edit_layout)
         
-        # 按钮区域
-        button_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=45 if is_android else 50, spacing=spacing_val)
+        # 按钮区域（增大高度，便于点击）
+        button_edit_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=75 if is_android else 60, spacing=spacing_val)  # 增大高度，便于手机点击
         
         # 保存修改按钮
         save_edit_button = Button(
             text=get_text('save_edit'),
             size_hint_x=0.5,
-            font_size=14 if is_android else 16,
+            font_size=20 if is_android else 16,
             on_press=self.save_edit
         )
         if CHINESE_FONT:
             save_edit_button.font_name = CHINESE_FONT
         button_edit_layout.add_widget(save_edit_button)
-        
+
         # 关闭按钮
         close_edit_button = Button(
             text=get_text('close'),
             size_hint_x=0.5,
-            font_size=14 if is_android else 16,
+            font_size=20 if is_android else 16,
             on_press=lambda x: self.edit_popup.dismiss()
         )
         if CHINESE_FONT:
@@ -1116,7 +1124,7 @@ class ScoreApp(App):
         self.edit_popup = Popup(
             title=get_text('edit_title'),
             content=edit_layout,
-            size_hint=(0.95 if is_android else 0.7, 0.65 if is_android else 0.55),
+            size_hint=(0.95 if is_android else 0.7, 0.1 if is_android else 0.45),  # 进一步减小高度，让弹窗更紧凑
             title_size=18 if is_android else 20
         )
         if CHINESE_FONT:
@@ -1167,6 +1175,14 @@ class ScoreApp(App):
             # 更新显示
             self.update_display()
             self.edit_popup.dismiss()
+            
+            # 如果历史记录弹窗还打开，关闭并重新打开以刷新内容
+            if hasattr(self, 'history_popup') and self.history_popup:
+                try:
+                    self.history_popup.dismiss()
+                    Clock.schedule_once(lambda dt: self.show_history(None), 0.2)
+                except:
+                    pass
             
             # 检查是新建还是更新
             all_scores = self.data_manager.get_all_scores()
