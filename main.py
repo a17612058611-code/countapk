@@ -9,6 +9,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.spinner import Spinner
 from kivy.clock import Clock
 from kivy.core.text import LabelBase
+from kivy.resources import resource_find, resource_add_path
 from datetime import datetime
 import json
 import os
@@ -26,7 +27,9 @@ def get_chinese_font():
     
     # 优先使用打包的字体文件（适用于Android和所有平台）
     bundled_fonts = [
-        'assets/fonts/SourceHanSansCN-Regular.otf',  # 思源黑体
+        'assets/fonts/SourceHanSansSC-Regular.otf',  # 思源黑体（简体中文）
+        'assets/fonts/SourceHanSansSC-Normal.otf',   # 思源黑体 Normal
+        'assets/fonts/SourceHanSansCN-Regular.otf',  # 思源黑体（兼容旧名称）
         'assets/fonts/SourceHanSansCN-Regular.ttf',
         'assets/fonts/NotoSansCJK-Regular.ttf',       # Noto Sans CJK
         'assets/fonts/NotoSansCJK-Regular.otf',
@@ -35,8 +38,17 @@ def get_chinese_font():
     
     # 检查打包的字体文件
     for font_path in bundled_fonts:
+        # 先尝试直接文件路径
         if os.path.exists(font_path):
             return font_path
+        # 在Android上，尝试使用resource_find查找资源
+        if is_android:
+            try:
+                resource_font = resource_find(font_path)
+                if resource_font:
+                    return resource_font
+            except:
+                pass
     
     # Android系统：尝试使用系统字体路径
     if is_android:
@@ -48,7 +60,7 @@ def get_chinese_font():
         for font_path in android_fonts:
             if os.path.exists(font_path):
                 return font_path
-        # 如果找不到系统字体，返回None，稍后会尝试使用资源路径
+        # 如果找不到系统字体，返回None
         return None
     elif system == 'Darwin':  # macOS
         # macOS 系统字体文件路径（按优先级排序）
@@ -82,23 +94,35 @@ CHINESE_FONT = None
 FONT_AVAILABLE = False
 if CHINESE_FONT_PATH:
     try:
-        # 在Android上，如果字体在assets目录，需要使用资源路径
         is_android = os.path.exists('/system/build.prop') or 'ANDROID_ARGUMENT' in os.environ
+        
+        # 在Android上，如果字体路径是assets/开头，尝试添加资源路径
         if is_android and CHINESE_FONT_PATH.startswith('assets/'):
-            # Android上使用资源路径
-            font_name = 'ChineseFont'
-            LabelBase.register(name=font_name, fn_regular=CHINESE_FONT_PATH)
-            CHINESE_FONT = font_name
-            FONT_AVAILABLE = True
-        else:
-            # 其他平台使用文件路径
-            font_name = 'ChineseFont'
-            LabelBase.register(name=font_name, fn_regular=CHINESE_FONT_PATH)
-            CHINESE_FONT = font_name
-            FONT_AVAILABLE = True
+            try:
+                # 尝试添加assets目录到资源路径
+                if os.path.exists('assets'):
+                    resource_add_path('assets')
+            except:
+                pass
+            
+            # 尝试使用resource_find查找资源
+            try:
+                resource_font = resource_find(CHINESE_FONT_PATH)
+                if resource_font:
+                    CHINESE_FONT_PATH = resource_font
+            except:
+                pass
+        
+        # 注册字体
+        font_name = 'ChineseFont'
+        LabelBase.register(name=font_name, fn_regular=CHINESE_FONT_PATH)
+        CHINESE_FONT = font_name
+        FONT_AVAILABLE = True
         print(f"中文字体已注册: {CHINESE_FONT_PATH}")
     except Exception as e:
         print(f"警告: 字体注册失败: {e}")
+        import traceback
+        traceback.print_exc()
         CHINESE_FONT = None
         FONT_AVAILABLE = False
 
