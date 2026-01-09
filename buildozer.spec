@@ -1,7 +1,7 @@
 [app]
 
 # (str) Title of your application
-title = 每日分数记录
+title = 拾光ZM
 
 # (str) Package name
 package.name = scoreapp
