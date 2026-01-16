@@ -50,11 +50,26 @@ echo "=========================================="
 if ls bin/*.apk 2>/dev/null; then
     echo "✓ APK打包成功！"
     echo ""
+    
+    # 生成时间戳（格式：YYYYMMDDHHmm，例如：202601061522）
+    TIMESTAMP=$(date +"%Y%m%d%H%M")
+    
+    # 重命名APK文件
+    for apk_file in bin/*.apk; do
+        if [ -f "$apk_file" ]; then
+            # 新文件名：acoreapp_1.0.000_{时间戳}_debug.apk
+            new_name="bin/acoreapp_1.0.000_${TIMESTAMP}_debug.apk"
+            mv "$apk_file" "$new_name"
+            echo "✓ APK已重命名为: $(basename "$new_name")"
+        fi
+    done
+    
+    echo ""
     echo "APK文件位置:"
-    ls -lh bin/*.apk
+    ls -lh bin/acoreapp_*.apk 2>/dev/null || ls -lh bin/*.apk
     echo ""
     echo "安装到设备:"
-    echo "  adb install bin/*.apk"
+    echo "  adb install bin/acoreapp_*.apk"
 else
     echo "✗ APK打包失败"
     echo "请查看 build.log 获取详细错误信息"

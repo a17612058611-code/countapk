@@ -4,7 +4,7 @@
 title = 拾光ZM
 
 # (str) Package name
-package.name = scoreapp
+package.name = acoreapp
 
 # (str) Package domain (needed for android/ios packaging)
 package.domain = org.example
@@ -31,7 +31,7 @@ source.include_patterns = assets/fonts/*
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.1
+version = 1.0.000
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -97,6 +97,9 @@ fullscreen = 0
 
 # (str) The application's version code (integer)
 android.version_code = 1
+
+# (str) The application's version name (string)
+android.version_name = 1.0.000
 
 # (str) The application's version name (string)
 #android.version_name = 0.1
